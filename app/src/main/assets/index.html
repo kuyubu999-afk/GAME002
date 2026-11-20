@@ -18,17 +18,17 @@ const P=[['水星','Mercury',87.969,.39,'#aeb5c2','4,879 km','最靠近太阳的
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));b.classList.add('active');$(b.dataset.tab).classList.add('active');draw();});
 $('planetList').innerHTML=P.map((p,i)=>'<div class="planet" data-i="'+i+'"><b style="color:'+p[4]+'">● '+p[0]+'</b><small>'+p[1]+' · '+p[5]+'</small><div class="small muted">'+p[6]+'</div></div>').join('');
 $('planetList').onclick=e=>{let c=e.target.closest('[data-i]');if(c){let p=P[+c.dataset.i];$('selectedPlanet').innerHTML='<b style="color:'+p[4]+'">'+p[0]+' / '+p[1]+'</b><br>公转周期：'+p[2]+' 天；平均日心距离：'+p[3]+' AU<br>'+p[6];}};
-let date=new Date(),running=true,last=0,rate=1;const fmt=d=>d.toISOString().slice(0,10);$('simDate').value=fmt(date);
+let date=new Date(),running=true,last=0,rate=30;const fmt=d=>d.toISOString().slice(0,10);$('simDate').value=fmt(date);$('speed').value='2';$('speedLabel').textContent='30天/秒';
 $('simDate').onchange=()=>{if($('simDate').value){date=new Date($('simDate').value+'T12:00:00Z');draw();}};
-$('today').onclick=()=>{date=new Date();$('simDate').value=fmt(date);draw();};
+$('today').onclick=()=>{date=new Date();running=false;last=0;$('toggle').textContent='继续';$('toggle').classList.remove('active');$('simDate').value=fmt(date);draw();};
 $('toggle').onclick=()=>{running=!running;$('toggle').textContent=running?'暂停':'继续';$('toggle').classList.toggle('active',running);};
 function step(n){date.setUTCDate(date.getUTCDate()+n);$('simDate').value=fmt(date);draw();}$('back').onclick=()=>step(-1);$('forward').onclick=()=>step(1);
-$('speed').oninput=()=>{rate=[0,1,5,20,100,365][+$('speed').value];$('speedLabel').textContent=rate+'天/秒';};
+$('speed').oninput=()=>{rate=[1,5,30,100,300,1000][+$('speed').value];$('speedLabel').textContent=rate+'天/秒';};
 function draw(){let cx=450,cy=325,day=(date-Date.UTC(2000,0,1))/86400000,s='<defs><radialGradient id="sg"><stop stop-color="#fff7bc"/><stop offset=".5" stop-color="#ffb52e"/><stop offset="1" stop-color="#ff8514" stop-opacity="0"/></radialGradient></defs>';
 for(let i=0;i<130;i++){let x=i*137.5%900,y=i*79.3%650;s+='<circle cx="'+x+'" cy="'+y+'" r="'+(i%3?1:1.8)+'" fill="#bcd0f5" opacity=".55"/>';}
 P.forEach((p,i)=>{let r=23*Math.sqrt(p[3])*2.6,a=day/p[2]*Math.PI*2+i*.7,x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r*.73,rad=i<4?5+i*.7:7+i*.6;s+='<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+r+'" ry="'+r*.73+'" fill="none" stroke="#6e91be" stroke-opacity=".35"/><circle cx="'+x+'" cy="'+y+'" r="'+rad+'" fill="'+p[4]+'"/><text x="'+(x+rad+5)+'" y="'+(y+5)+'" fill="#d8e4fa" font-size="18">'+p[0]+'</text>';});
 s+='<circle cx="'+cx+'" cy="'+cy+'" r="26" fill="url(#sg)"/><circle cx="'+cx+'" cy="'+cy+'" r="11" fill="#fff0b5"/><text x="472" y="311" fill="#fff0b5" font-size="18">太阳</text><text x="22" y="34" fill="#aebfda" font-size="20">'+fmt(date)+'</text>';$('space').innerHTML=s;}
-function frame(t){if(last&&running){let dt=Math.min((t-last)/1000,.1);date=new Date(+date+dt*rate*86400000);$('simDate').value=fmt(date);draw();}last=t;requestAnimationFrame(frame);}
+function frame(t){if(last&&running){let dt=Math.min((t-last)/1000,.25);date=new Date(+date+dt*rate*86400000);$('simDate').value=fmt(date);draw();}last=t;requestAnimationFrame(frame);}
 const syn=29.530588861,ms=86400000;
 function norm(x){return(x%360+360)%360;}
 function phase(k,full){let kk=k+(full?.5:0),T=kk/1236.85,jd=2451550.09766+syn*kk+.00015437*T*T-.00000015*T*T*T+.00000000073*T*T*T*T,M=norm(2.5534+29.1053567*kk),Mp=norm(201.5643+385.81693528*kk),F=norm(160.7108+390.67050284*kk-.0016118*T*T-.00000227*T*T*T),corr=full?-.40614*Math.sin(Mp*Math.PI/180)+.17302*Math.sin(M*Math.PI/180):-.4072*Math.sin(Mp*Math.PI/180)+.17241*Math.sin(M*Math.PI/180);return{d:new Date(Date.UTC(2000,0,1,12)+(jd-2451545+corr)*ms),F};}
