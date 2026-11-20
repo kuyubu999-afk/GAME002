@@ -2,12 +2,26 @@
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name="theme-color" content="#070b18"><title>太阳系探索</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#070b18;color:#edf3ff;font-family:system-ui,sans-serif}header{padding:18px 16px 10px;background:linear-gradient(130deg,#101d3a,#091020)}h1{font-size:22px;margin:0}header p{margin:5px 0;color:#9fb2d4;font-size:12px}.tabs{display:flex;gap:8px;padding:12px 14px;position:sticky;top:0;background:#070b18;z-index:2}button{border:1px solid #31466c;background:#111d34;color:#eaf1ff;border-radius:12px;padding:10px 14px;font-size:14px}.active{background:#315b9b!important}.page{display:none;padding:0 14px 24px}.page.active{display:block}.panel{background:#101a2e;border:1px solid #203352;border-radius:16px;padding:14px;margin:0 0 12px}.muted{color:#9db0cf;font-size:12px;line-height:1.55}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row>*{flex:1}.row button{flex:0 0 auto}input{background:#081225;border:1px solid #354b70;color:#fff;padding:10px;border-radius:9px;min-width:0}input[type=date]{width:100%}label{font-size:13px;color:#c6d4eb}#space{display:block;width:100%;height:auto;border-radius:12px;background:#050a16;aspect-ratio:900/650}.planetgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.planet{padding:10px;background:#0b1426;border:1px solid #233858;border-radius:12px;min-height:75px}.planet b{display:block;font-size:14px}.planet small{color:#9db0cf}.event{padding:12px 0;border-bottom:1px solid #243654}.warn{color:#ffd58b}.small{font-size:11px}.slider{width:100%}h2{font-size:17px;margin:0 0 10px}h3{font-size:14px;margin:0 0 6px}.spacer{height:8px}
+.viewtools{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.viewtools button{font-size:12px;padding:8px 10px}
+.viewhint{font-size:11px;color:#9db0cf;margin:0 0 7px}
+#space{touch-action:pan-y;cursor:crosshair}
+#sim.sim-max{position:fixed;inset:0;z-index:1000;background:#070b18;overflow:auto;padding:8px;margin:0}
+#sim.sim-max .panel:first-child{min-height:calc(100dvh - 16px);display:flex;flex-direction:column}
+#sim.sim-max #space{flex:1;min-height:220px;height:calc(100dvh - 235px);max-height:none;aspect-ratio:auto}
+#sim.sim-max .viewtools{margin-top:4px}
+#sim.sim-max .panel:nth-child(2){display:none}
+@media (orientation:landscape){
+ #space{max-height:72vh}
+ #sim.sim-max #space{height:calc(100dvh - 165px);min-height:160px}
+ #sim.sim-max .panel:first-child{min-height:calc(100dvh - 16px)}
+}
+
 </style></head><body>
 <header><h1>☀️ 太阳系探索</h1><p>行星轨道模拟 · 天体资料 · 日食与月食候选查询</p></header>
 <nav class="tabs"><button class="active" data-tab="sim">太阳系模拟</button><button data-tab="eclipse">日月食查询</button><button data-tab="info">行星资料</button></nav>
 <section id="sim" class="page active"><div class="panel">
 <div class="row"><div><label>模拟日期</label><input id="simDate" type="date"></div><button id="today">回到今天</button></div><div class="spacer"></div>
-<svg id="space" viewBox="0 0 900 650" role="img" aria-label="太阳系行星轨道模拟"></svg>
+<div class="viewtools"><button id="maximize" type="button">⛶ 最大化</button><button id="zoomOut" type="button">− 缩小</button><button id="zoomIn" type="button">＋ 放大</button><button id="resetView" type="button">全景</button></div><div id="viewHint" class="viewhint">点击轨道上的行星，可切换观察中心。</div><svg id="space" viewBox="0 0 900 650" role="img" aria-label="太阳系行星轨道模拟"></svg>
 <div class="row" style="margin-top:10px"><button id="toggle" class="active">暂停</button><button id="back">− 1天</button><button id="forward">+ 1天</button></div><label>时间流速：<span id="speedLabel">1天/秒</span></label><input class="slider" id="speed" type="range" min="0" max="5" value="1"></div>
 <div class="panel"><h2>当前模拟说明</h2><p class="muted">行星轨道与大小采用示意比例，轨道半径经过压缩以便在手机屏幕上同时观察。行星公转周期采用近似平均值；画面不是实时天文星历或精确尺度模型。</p><div id="selectedPlanet" class="muted"></div></div></section>
 <section id="eclipse" class="page"><div class="panel"><h2>🔭 日食 / 月食日期查询</h2><div class="row"><div><label>开始日期</label><input id="fromDate" type="date" value="2026-01-01"></div><div><label>结束日期</label><input id="toDate" type="date" value="2030-12-31"></div></div><div class="spacer"></div><div class="row"><label><input id="solarCheck" type="checkbox" checked> 日食候选</label><label><input id="lunarCheck" type="checkbox" checked> 月食候选</label></div><div class="spacer"></div><button class="active" id="searchEclipse">查询日期</button><div id="results" style="margin-top:12px" class="muted">选择日期范围后开始查询。</div></div><div class="panel"><h3>查询说明</h3><p class="muted">按朔、望月相和月球轨道交点附近的几何条件筛选候选日期。结果仅供学习，不提供精确食分、接触时刻、日食带路径或城市可见性。日食观测必须使用符合标准的专用太阳观测滤镜。</p></div></section>
@@ -18,7 +32,7 @@ const P=[['水星','Mercury',87.969,.39,'#aeb5c2','4,879 km','最靠近太阳的
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));b.classList.add('active');$(b.dataset.tab).classList.add('active');draw();});
 $('planetList').innerHTML=P.map((p,i)=>'<div class="planet" data-i="'+i+'"><b style="color:'+p[4]+'">● '+p[0]+'</b><small>'+p[1]+' · '+p[5]+'</small><div class="small muted">'+p[6]+'</div></div>').join('');
 $('planetList').onclick=e=>{let c=e.target.closest('[data-i]');if(c){let p=P[+c.dataset.i];$('selectedPlanet').innerHTML='<b style="color:'+p[4]+'">'+p[0]+' / '+p[1]+'</b><br>公转周期：'+p[2]+' 天；平均日心距离：'+p[3]+' AU<br>'+p[6];}};
-let date=new Date(),running=true,last=0,rate=30;const fmt=d=>d.toISOString().slice(0,10);$('simDate').value=fmt(date);$('speed').value='2';$('speedLabel').textContent='30天/秒';
+let date=new Date(),running=true,last=0,rate=30;let focusPlanet=-1,zoomLevel=1;const fmt=d=>d.toISOString().slice(0,10);$('simDate').value=fmt(date);$('speed').value='2';$('speedLabel').textContent='30天/秒';
 $('simDate').onchange=()=>{if($('simDate').value){date=new Date($('simDate').value+'T12:00:00Z');draw();}};
 $('today').onclick=()=>{date=new Date();running=false;last=0;$('toggle').textContent='继续';$('toggle').classList.remove('active');$('simDate').value=fmt(date);draw();};
 $('toggle').onclick=()=>{running=!running;$('toggle').textContent=running?'暂停':'继续';$('toggle').classList.toggle('active',running);};
@@ -26,12 +40,23 @@ function step(n){date.setUTCDate(date.getUTCDate()+n);$('simDate').value=fmt(dat
 $('speed').oninput=()=>{rate=[1,5,30,100,300,1000][+$('speed').value];$('speedLabel').textContent=rate+'天/秒';};
 function draw(){let cx=450,cy=325,day=(date-Date.UTC(2000,0,1))/86400000,s='<defs><radialGradient id="sg"><stop stop-color="#fff7bc"/><stop offset=".5" stop-color="#ffb52e"/><stop offset="1" stop-color="#ff8514" stop-opacity="0"/></radialGradient></defs>';
 for(let i=0;i<130;i++){let x=i*137.5%900,y=i*79.3%650;s+='<circle cx="'+x+'" cy="'+y+'" r="'+(i%3?1:1.8)+'" fill="#bcd0f5" opacity=".55"/>';}
-P.forEach((p,i)=>{let r=23*Math.sqrt(p[3])*2.6,a=day/p[2]*Math.PI*2+i*.7,x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r*.73,rad=i<4?5+i*.7:7+i*.6;s+='<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+r+'" ry="'+r*.73+'" fill="none" stroke="#6e91be" stroke-opacity=".35"/><circle cx="'+x+'" cy="'+y+'" r="'+rad+'" fill="'+p[4]+'"/><text x="'+(x+rad+5)+'" y="'+(y+5)+'" fill="#d8e4fa" font-size="18">'+p[0]+'</text>';});
-s+='<circle cx="'+cx+'" cy="'+cy+'" r="26" fill="url(#sg)"/><circle cx="'+cx+'" cy="'+cy+'" r="11" fill="#fff0b5"/><text x="472" y="311" fill="#fff0b5" font-size="18">太阳</text><text x="22" y="34" fill="#aebfda" font-size="20">'+fmt(date)+'</text>';$('space').innerHTML=s;}
+let positions=P.map((p,i)=>{let r=23*Math.sqrt(p[3])*2.6,a=day/p[2]*Math.PI*2+i*.7;return{x:cx+Math.cos(a)*r,y:cy+Math.sin(a)*r*.73,r};});
+let tx=0,ty=0,z=zoomLevel;
+if(focusPlanet>=0){tx=cx-z*positions[focusPlanet].x;ty=cy-z*positions[focusPlanet].y;}
+s+='<g transform="translate('+tx+' '+ty+') scale('+z+')">';
+P.forEach((p,i)=>{let q=positions[i],rad=i<4?5+i*.7:7+i*.6;s+='<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+q.r+'" ry="'+q.r*.73+'" fill="none" stroke="#6e91be" stroke-opacity=".35"/><circle data-planet="'+i+'" cx="'+q.x+'" cy="'+q.y+'" r="'+rad+'" fill="'+p[4]+'" stroke="'+(focusPlanet===i?'#ffffff':'none')+'" stroke-width="'+(focusPlanet===i?2:0)+'"/><text data-planet="'+i+'" x="'+(q.x+rad+5)+'" y="'+(q.y+5)+'" fill="#d8e4fa" font-size="18">'+p[0]+'</text>';});
+s+='<circle cx="'+cx+'" cy="'+cy+'" r="26" fill="url(#sg)"/><circle cx="'+cx+'" cy="'+cy+'" r="11" fill="#fff0b5"/><text x="472" y="311" fill="#fff0b5" font-size="18">太阳</text></g><text x="22" y="34" fill="#aebfda" font-size="20">'+fmt(date)+'</text>';
+$('space').innerHTML=s;
+$('viewHint').textContent=focusPlanet<0?'全景模式 · 点击任意行星切换观察中心':'观察中心：'+P[focusPlanet][0]+' · 可继续缩放或点击其他行星';}
 function frame(t){if(last&&running){let dt=Math.min((t-last)/1000,.25);date=new Date(+date+dt*rate*86400000);$('simDate').value=fmt(date);draw();}last=t;requestAnimationFrame(frame);}
 const syn=29.530588861,ms=86400000;
 function norm(x){return(x%360+360)%360;}
 function phase(k,full){let kk=k+(full?.5:0),T=kk/1236.85,jd=2451550.09766+syn*kk+.00015437*T*T-.00000015*T*T*T+.00000000073*T*T*T*T,M=norm(2.5534+29.1053567*kk),Mp=norm(201.5643+385.81693528*kk),F=norm(160.7108+390.67050284*kk-.0016118*T*T-.00000227*T*T*T),corr=full?-.40614*Math.sin(Mp*Math.PI/180)+.17302*Math.sin(M*Math.PI/180):-.4072*Math.sin(Mp*Math.PI/180)+.17241*Math.sin(M*Math.PI/180);return{d:new Date(Date.UTC(2000,0,1,12)+(jd-2451545+corr)*ms),F};}
 $('searchEclipse').onclick=()=>{let a=new Date($('fromDate').value+'T00:00:00Z'),b=new Date($('toDate').value+'T23:59:59Z');if(isNaN(a)||isNaN(b)||b<a){$('results').textContent='日期范围无效';return;}let out=[],k0=Math.floor((+a-Date.UTC(2000,0,6))/(syn*ms))-2,k1=Math.ceil((+b-Date.UTC(2000,0,6))/(syn*ms))+2;for(let k=k0;k<=k1;k++)for(let full of [false,true]){let q=phase(k,full),d=Math.min(q.F,360-q.F,Math.abs(180-q.F));if(q.d<a||q.d>b||d>17||(full&&!$('lunarCheck').checked)||(!full&&!$('solarCheck').checked))continue;out.push('<div class="event"><b>'+fmt(q.d)+' · '+(full?'月食候选':'日食候选')+'</b><div class="muted">'+(full?'望月接近轨道交点':'朔月接近轨道交点')+'；交点角距估算 '+d.toFixed(1)+'°</div></div>');} $('results').innerHTML=out.length?out.join(''):'该范围内未筛选到候选日期。';};
+$('space').addEventListener('click',e=>{let n=e.target.closest('[data-planet]');if(n){focusPlanet=+n.getAttribute('data-planet');zoomLevel=Math.max(zoomLevel,2.1);draw();}});
+$('zoomIn').onclick=()=>{zoomLevel=Math.min(zoomLevel*1.35,6);draw();};
+$('zoomOut').onclick=()=>{zoomLevel=Math.max(zoomLevel/1.35,.7);draw();};
+$('resetView').onclick=()=>{focusPlanet=-1;zoomLevel=1;draw();};
+$('maximize').onclick=()=>{let on=$('sim').classList.toggle('sim-max');$('maximize').textContent=on?'⤢ 恢复':'⛶ 最大化';window.scrollTo(0,0);draw();};
 draw();requestAnimationFrame(frame);
 })();</script></body></html>
